@@ -16,6 +16,8 @@ config.read('ETLDemo.ini')
 # read settings from configuration file
 startDate = config['CONFIG']['startDate']
 url = config['CONFIG']['url']
+destServer = config['CONFIG']['server']
+destDatabase = config['CONFIG']['database']
 
 # request data from URL
 BOCResponse = requests.get(url+startDate)
@@ -23,6 +25,9 @@ BOCResponse = requests.get(url+startDate)
 # initialize list of lists for data storage
 BOCDates = []
 BOCRates = []
+
+# intialize database connection
+dbConnection = pymssql.connect(server=destServer,database=destDatabase)
 
 # check response status and process BOC JSON object
 if (BOCResponse.status_code == 200):
@@ -33,25 +38,27 @@ if (BOCResponse.status_code == 200):
         BOCDates.append(datetime.datetime.strptime(row['d'],'%Y-%m-%d'))
         BOCRates.append(decimal.Decimal(row['FXUSDCAD']['v']))
 
-# create petl table from column arrays and rename the columns
-exchangeRates = petl.fromcolumns([BOCDates,BOCRates])
-exchangeRates = petl.rename(exchangeRates,{'f0': 'date','f1':'rate'})
-print (exchangeRates)
+    # create petl table from column arrays and rename the columns
+    exchangeRates = petl.fromcolumns([BOCDates,BOCRates])
+    exchangeRates = petl.rename(exchangeRates,{'f0': 'date','f1':'rate'})
+    # print (exchangeRates)
 
-# load expense document
-expenses = petl.io.xlsx.fromxlsx('Expenses.xlsx',sheet='Github')
+    # load expense document
+    expenses = petl.io.xlsx.fromxlsx('Expenses.xlsx',sheet='Github')
 
-# join tables
-expenses = petl.leftjoin(exchangeRates,expenses,key='date')
+    # join tables
+    expenses = petl.leftjoin(exchangeRates,expenses,key='date')
 
-# fill down missing values
-expenses = petl.filldown(expenses,'rate')
+    # fill down missing values
+    expenses = petl.filldown(expenses,'rate')
 
-# remove dates with no expenses
-expenses = petl.select(expenses,lambda rec: rec.US != None)
+    # remove dates with no expenses
+    expenses = petl.select(expenses,lambda rec: rec.USD != None)
 
-# add CDN column
-expenses = petl.addfield(expenses,'CDN', lambda rec: rec.US * rec.rate)
+    # add CDN column
+    expenses = petl.addfield(expenses,'CAD', lambda rec: decimal.Decimal(rec.USD) * rec.rate)
 
-print (expenses)
+    # populate Expenses database table
+    petl.io.todb (expenses,dbConnection,'Expenses')
+    # print (expenses)
 
