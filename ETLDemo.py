@@ -1,7 +1,6 @@
 
 import os
 import petl
-import sys
 import pymssql
 import configparser
 import requests
