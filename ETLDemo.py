@@ -18,8 +18,6 @@ url = config['CONFIG']['url']
 destServer = config['CONFIG']['server']
 destDatabase = config['CONFIG']['database']
 
-# request data from URL
-BOCResponse = requests.get(url+startDate)
 
 # initialize list of lists for data storage
 BOCDates = []
@@ -27,6 +25,11 @@ BOCRates = []
 
 # intialize database connection
 dbConnection = pymssql.connect(server=destServer,database=destDatabase)
+
+# request data from URL
+BOCResponse = requests.get(url+startDate)
+
+print (BOCResponse.text)
 
 # check response status and process BOC JSON object
 if (BOCResponse.status_code == 200):
@@ -38,8 +41,8 @@ if (BOCResponse.status_code == 200):
         BOCRates.append(decimal.Decimal(row['FXUSDCAD']['v']))
 
     # create petl table from column arrays and rename the columns
-    exchangeRates = petl.fromcolumns([BOCDates,BOCRates])
-    exchangeRates = petl.rename(exchangeRates,{'f0': 'date','f1':'rate'})
+    exchangeRates = petl.fromcolumns([BOCDates,BOCRates],header=['date','rate'])
+
     # print (exchangeRates)
 
     # load expense document
