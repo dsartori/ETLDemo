@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS Expenses
 
 CREATE TABLE Expenses
 (
-	date datetime,
+	[date] datetime,
 	USD money,
 	rate DECIMAL(6,5),
 	CAD money

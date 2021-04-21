@@ -18,18 +18,13 @@ url = config['CONFIG']['url']
 destServer = config['CONFIG']['server']
 destDatabase = config['CONFIG']['database']
 
+# request data from URL
+BOCResponse = requests.get(url+startDate)
+# print (BOCResponse.text)
 
 # initialize list of lists for data storage
 BOCDates = []
 BOCRates = []
-
-# intialize database connection
-dbConnection = pymssql.connect(server=destServer,database=destDatabase)
-
-# request data from URL
-BOCResponse = requests.get(url+startDate)
-
-print (BOCResponse.text)
 
 # check response status and process BOC JSON object
 if (BOCResponse.status_code == 200):
@@ -49,7 +44,7 @@ if (BOCResponse.status_code == 200):
     expenses = petl.io.xlsx.fromxlsx('Expenses.xlsx',sheet='Github')
 
     # join tables
-    expenses = petl.leftjoin(exchangeRates,expenses,key='date')
+    expenses = petl.outerjoin(exchangeRates,expenses,key='date')
 
     # fill down missing values
     expenses = petl.filldown(expenses,'rate')
@@ -59,8 +54,11 @@ if (BOCResponse.status_code == 200):
 
     # add CDN column
     expenses = petl.addfield(expenses,'CAD', lambda rec: decimal.Decimal(rec.USD) * rec.rate)
+    
+    # intialize database connection
+    dbConnection = pymssql.connect(server=destServer,database=destDatabase)
 
     # populate Expenses database table
     petl.io.todb (expenses,dbConnection,'Expenses')
-    # print (expenses)
+    print (expenses)
 
