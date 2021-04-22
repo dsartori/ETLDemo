@@ -1,5 +1,6 @@
 
 import os
+import sys
 import petl
 import pymssql
 import configparser
@@ -10,7 +11,12 @@ import decimal
 
 # get data from configuration file
 config = configparser.ConfigParser()
-config.read('ETLDemo.ini')
+try:
+    config.read('ETLDemo.ini')
+except Exception as e:
+    print('could not read configuration file:' + str(e))
+    sys.exit()
+
 
 # read settings from configuration file
 startDate = config['CONFIG']['startDate']
@@ -19,7 +25,11 @@ destServer = config['CONFIG']['server']
 destDatabase = config['CONFIG']['database']
 
 # request data from URL
-BOCResponse = requests.get(url+startDate)
+try:
+    BOCResponse = requests.get(url+startDate)
+except Exception as e:
+    print('could not make request:' + str(e))
+    sys.exit()
 # print (BOCResponse.text)
 
 # initialize list of lists for data storage
@@ -41,7 +51,11 @@ if (BOCResponse.status_code == 200):
     # print (exchangeRates)
 
     # load expense document
-    expenses = petl.io.xlsx.fromxlsx('Expenses.xlsx',sheet='Github')
+    try:
+        expenses = petl.io.xlsx.fromxlsx('Expenses.xlsx',sheet='Github')
+    except Exception as e:
+        print('could not open expenses.xlsx:' + str(e))
+        sys.exit()
 
     # join tables
     expenses = petl.outerjoin(exchangeRates,expenses,key='date')
@@ -56,9 +70,16 @@ if (BOCResponse.status_code == 200):
     expenses = petl.addfield(expenses,'CAD', lambda rec: decimal.Decimal(rec.USD) * rec.rate)
     
     # intialize database connection
-    dbConnection = pymssql.connect(server=destServer,database=destDatabase)
+    try:
+        dbConnection = pymssql.connect(server=destServer,database=destDatabase)
+    except Exception as e:
+        print('could not connect to database:' + str(e))
+        sys.exit()
 
     # populate Expenses database table
-    petl.io.todb (expenses,dbConnection,'Expenses')
+    try:
+        petl.io.todb (expenses,dbConnection,'Expenses')
+    except Exception as e:
+        print('could not write to database:' + str(e))
     print (expenses)
 
