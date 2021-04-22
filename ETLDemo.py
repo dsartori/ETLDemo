@@ -9,6 +9,8 @@ import datetime
 import json
 import decimal
 
+
+
 # get data from configuration file
 config = configparser.ConfigParser()
 try:
