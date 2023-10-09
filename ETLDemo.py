@@ -25,6 +25,8 @@ startDate = config['CONFIG']['startDate']
 url = config['CONFIG']['url']
 destServer = config['CONFIG']['server']
 destDatabase = config['CONFIG']['database']
+user = config['CONFIG']['user']
+password = config['CONFIG']['password']
 
 # request data from URL
 try:
@@ -73,7 +75,7 @@ if (BOCResponse.status_code == 200):
     
     # intialize database connection
     try:
-        dbConnection = pymssql.connect(server=destServer,database=destDatabase)
+        dbConnection = pymssql.connect(server=destServer,database=destDatabase,user=user,password=password)
     except Exception as e:
         print('could not connect to database:' + str(e))
         sys.exit()

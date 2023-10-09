@@ -1,0 +1,4 @@
+petl
+pymssql
+configparser
+openpyxl

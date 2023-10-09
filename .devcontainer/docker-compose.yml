@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        # [Choice] Python version: 3, 3.8, 3.7, 3.6
+        VARIANT: 3.9
+        # [Choice] Node.js version: none, lts/*, 16, 14, 12, 10
+        NODE_VERSION: "lts/*"
+        # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
+        USER_UID: 1000
+        USER_GID: 1000
+    environment:
+      PMA_HOSTS: app
+    platform: linux/amd64 
+    volumes:
+      - ..:/workspace:cached
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    #network_mode: service:db
+
+    # Uncomment the next line to use a non-root user for all processes.
+    user: vscode
+
+
+  db:
+    build:
+      context: .
+      dockerfile: mssql.Dockerfile
+    environment:
+      MSSQL_SA_PASSWORD: 1SecurePassword1
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+      PMA_HOSTS: db
+    expose: [1433,]
+    platform: linux/amd64 
+    restart: unless-stopped
+    volumes:
+      - mssql-data:/var/opt/mssql
+      - ../wkt:/wkt:cached
+        
+volumes:
+  mssql-data:
