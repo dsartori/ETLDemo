@@ -10,5 +10,5 @@ CREATE TABLE Expenses
 	[date] datetime,
 	USD int,
 	rate DECIMAL(6,5),
-	CAD int
+	CDA int
 )
