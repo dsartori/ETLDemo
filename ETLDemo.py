@@ -47,7 +47,7 @@ if (BOCResponse.status_code == 200):
     # extract observation data into column arrays
     for row in BOCRaw['observations']:
         BOCDates.append(datetime.datetime.strptime(row['d'],'%Y-%m-%d'))
-        BOCRates.append(decimal.Decimal(row['FXUSDCAD']['v']))
+        BOCRates.append(decimal.Decimal(row['FXUSDCAD']))
 
     # create petl table from column arrays and rename the columns
     exchangeRates = petl.fromcolumns([BOCDates,BOCRates],header=['date','rate'])
